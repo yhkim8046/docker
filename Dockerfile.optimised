@@ -1,0 +1,15 @@
+# Optimised docker file 
+FROM node:lts-alpine
+
+WORKDIR /app
+
+# Optimising cache by copying package.json & yarn.lock
+COPY package.json yarn.lock ./
+
+RUN yarn install --production --frozen-lockfile
+
+COPY . .
+
+CMD ["node", "src/index.js"]
+
+EXPOSE 3000
