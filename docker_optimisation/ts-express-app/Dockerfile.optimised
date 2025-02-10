@@ -1,0 +1,28 @@
+# ✅ Optimised by applying multi-stage build
+
+# 1️⃣ Build Stage
+FROM node:lts-alpine AS builder
+WORKDIR /app
+
+# Copy package files first (to optimize caching)
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev
+
+# Copy source code and compile TypeScript
+COPY . .
+RUN npm run build
+
+# 2️⃣ Runtime Stage (Removes unnecessary build tools)
+FROM node:lts-alpine
+WORKDIR /app
+
+# Copy only the built files and dependencies
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package.json ./
+
+# Set the command to run the application
+CMD ["node", "dist/index.js"]
+
+# Expose port 3000 for incoming connections
+EXPOSE 3000
